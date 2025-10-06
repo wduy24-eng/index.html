@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Duyviphehe1</title>
+  <meta name="description" content="Hỏi tên, chọn giới tính rồi phát một video kèm âm thanh." />
+  <style>
+    :root { --bg:#0b0d12; --card:#151924; --text:#e8ecf1; --muted:#9aa4b2; --accent:#6ae3ff; }
+    *{box-sizing:border-box}
+    html,body{height:100%;margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial}
+    body{background:radial-gradient(1200px 600px at 50% -10%,#1b2130 0%, var(--bg) 60%);
+         color:var(--text);display:flex;align-items:center;justify-content:center;padding:24px}
+    .card{width:min(680px,92vw);background:linear-gradient(180deg,#1b2231,#121722);
+          border:1px solid rgba(255,255,255,.06);border-radius:20px;box-shadow:0 10px 40px rgba(0,0,0,.45);
+          padding:22px 22px 18px}
+    h1,h2{margin:8px 0 4px} p{color:var(--muted);margin:0 0 14px}
+    .row{display:flex;gap:12px;align-items:center}
+    input[type="text"]{flex:1;padding:12px 14px;border-radius:12px;border:1px solid rgba(255,255,255,.09);
+      background:#0f1420;color:var(--text);outline:none;font-size:16px}
+    input::placeholder{color:#6b7686}
+    button{padding:12px 16px;border-radius:12px;border:0;cursor:pointer;font-weight:600;font-size:15px;
+      color:#08131a;background:var(--accent);box-shadow:0 6px 24px rgba(106,227,255,.25)}
+    button.secondary{background:#232a3a;color:var(--text);box-shadow:none;border:1px solid rgba(255,255,255,.08)}
+    .grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+    .hide{display:none!important} .hint{font-size:13px;color:#8d99a8}
+    .video-wrap{position:relative;border-radius:16px;overflow:hidden;border:1px solid rgba(255,255,255,.08);background:#000}
+    video{width:100%;display:block;background:#000}
+    .topbar{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
+    .name-chip{font-size:13px;color:#bcd1ff;background:rgba(105,150,255,.12);border:1px solid rgba(105,150,255,.25);
+               padding:6px 10px;border-radius:999px}
+    .warn{color:#ffb4b4;font-size:13px;margin-top:6px}
+  </style>
+</head>
+<body>
+  <main class="card">
+    <!-- Bước 1: hỏi tên -->
+    <section id="step1">
+      <h1>👋 Tên của bạn là gì?</h1>
+      <p>Nhập tên để tiếp tục.</p>
+      <div class="row" style="margin-top:12px">
+        <input id="nameInput" type="text" placeholder="Ví dụ: Duy" maxlength="40" autocomplete="name" />
+        <button id="toStep2">Gửi</button>
+      </div>
+      <div id="nameWarn" class="warn hide">Tên cần ít nhất 1 ký tự (không chỉ khoảng trắng).</div>
+      <p class="hint" style="margin-top:10px">Mẹo: bật âm thanh/đeo tai nghe nhé.</p>
+    </section>
+
+    <!-- Bước 2: chọn giới tính -->
+    <section id="step2" class="hide">
+      <div class="topbar">
+        <h2>Giới tính của bạn là gì?</h2>
+        <div id="chip" class="name-chip"></div>
+      </div>
+      <div class="grid" style="margin-top:12px">
+        <button id="pickMale">Nam</button>
+        <button id="pickFemale">Nữ</button>
+      </div>
+      <p class="hint" style="margin-top:10px">Chọn xong, video sẽ phát ngay (có tiếng).</p>
+    </section>
+
+    <!-- Bước 3: phát video -->
+    <section id="step3" class="hide">
+      <div class="topbar">
+        <h2 id="titlePlay">Đang phát video…</h2>
+        <div id="chip2" class="name-chip"></div>
+      </div>
+      <div class="video-wrap">
+        <!-- playsinline để iOS phát trong trang; controls để người dùng dừng khi cần -->
+        <video id="theVideo" playsinline controls preload="metadata"></video>
+      </div>
+      <div class="row" style="margin-top:12px;justify-content:space-between">
+        <button class="secondary" id="replayBtn">Phát lại</button>
+        <button class="secondary" id="resetBtn">Làm lại từ đầu</button>
+      </div>
+      <p class="hint" style="margin-top:10px">Nếu không nghe tiếng, hãy chạm vào video một lần rồi bấm ▶.</p>
+    </section>
+  </main>
+
+  <script>
+    // Lấy nhanh element
+    const $ = id => document.getElementById(id);
+
+    // Sections
+    const step1 = $('step1'), step2 = $('step2'), step3 = $('step3');
+
+    // Step 1
+    const nameInput = $('nameInput'), toStep2 = $('toStep2'), nameWarn = $('nameWarn');
+
+    // Step 2
+    const chip = $('chip'), pickMale = $('pickMale'), pickFemale = $('pickFemale');
+
+    // Step 3
+    const chip2 = $('chip2'), theVideo = $('theVideo'), replayBtn = $('replayBtn'), resetBtn = $('resetBtn'), titlePlay = $('titlePlay');
+
+    // CẢ HAI lựa chọn đều dùng cùng 1 file video
+    const VIDEO_URL = 'Jeff The Killer Pop Up Screen.mp4'; // đổi tên file ở đây nếu bạn thích
+
+    function show(section){ [step1, step2, step3].forEach(s=>s.classList.add('hide')); section.classList.remove('hide'); }
+
+    function goStep2(){
+      const name = (nameInput.value || '').trim();
+      if(!name){ nameWarn.classList.remove('hide'); return; }
+      nameWarn.classList.add('hide');
+      chip.textContent = `👤 ${name}`;
+      show(step2);
+    }
+    toStep2.addEventListener('click', goStep2);
+    nameInput.addEventListener('keydown', e => { if (e.key === 'Enter') goStep2(); });
+
+    async function goPlay(){
+      const name = (nameInput.value || '').trim();
+      chip2.textContent = `👤 ${name}`;
+      titlePlay.textContent = `Xin chào ${name}! Đang phát video…`;
+
+      // Reset & gắn nguồn
+      theVideo.pause();
+      theVideo.removeAttribute('src');
+      theVideo.load();
+      theVideo.src = VIDEO_URL;
+      theVideo.load();
+
+      show(step3);
+
+      // Cố gắng autoplay (được phép vì vừa có thao tác click)
+      try { await theVideo.play(); } catch(e) { console.warn('Autoplay bị chặn:', e); }
+    }
+
+    pickMale.addEventListener('click', goPlay);
+    pickFemale.addEventListener('click', goPlay);
+
+    replayBtn.addEventListener('click', async ()=>{
+      try { theVideo.currentTime = 0; await theVideo.play(); } catch(e){}
+    });
+
+    resetBtn.addEventListener('click', ()=>{
+      theVideo.pause(); theVideo.removeAttribute('src'); theVideo.load();
+      nameInput.value = ''; show(step1); nameInput.focus();
+    });
+  </script>
+</body>
+</html>
