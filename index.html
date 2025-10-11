@@ -5,13 +5,17 @@
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Duyviphehe1</title>
   <style>
-    html,body{height:100%;margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial;background:#000;color:#fff;display:flex;align-items:center;justify-content:center}
-    .card{width:min(680px,92vw);background:#111;border-radius:20px;padding:24px;box-shadow:0 10px 40px rgba(0,0,0,.6)}
-    .hide{display:none!important}
+    html,body{
+      height:100%;margin:0;
+      font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial;
+      background:#000;color:#fff;
+      display:flex;align-items:center;justify-content:center;
+    }
+    .card{width:min(680px,92vw);background:#111;border-radius:20px;padding:24px;text-align:center}
     input,button{padding:12px 16px;font-size:16px;border-radius:10px;border:none}
-    input{flex:1;background:#222;color:#fff;border:1px solid #333}
-    button{background:#00e5ff;color:#000;font-weight:600;cursor:pointer}
-    .row{display:flex;gap:12px}
+    input{width:70%;background:#222;color:#fff;border:1px solid #333}
+    button{background:#00e5ff;color:#000;font-weight:600;cursor:pointer;margin-top:12px}
+    .hide{display:none!important}
     video{width:100%;height:auto;display:block;background:#000}
   </style>
 </head>
@@ -19,22 +23,18 @@
   <main class="card">
     <section id="step1">
       <h2>👋 Tên của bạn là gì?</h2>
-      <div class="row" style="margin-top:12px">
-        <input id="nameInput" type="text" placeholder="Nhập tên..." maxlength="40" />
-        <button id="toStep2">Gửi</button>
-      </div>
+      <input id="nameInput" type="text" placeholder="Nhập tên..." maxlength="40" /><br>
+      <button id="toStep2">Gửi</button>
     </section>
 
     <section id="step2" class="hide">
       <h2>Giới tính của bạn là gì?</h2>
-      <div class="row" style="margin-top:12px">
-        <button id="pickMale">Nam</button>
-        <button id="pickFemale">Nữ</button>
-      </div>
+      <button id="pickMale">Nam</button>
+      <button id="pickFemale">Nữ</button>
     </section>
 
     <section id="step3" class="hide">
-      <video id="theVideo" playsinline controls preload="metadata"></video>
+      <video id="theVideo" controls preload="metadata"></video>
     </section>
   </main>
 
@@ -45,29 +45,31 @@
     const pickMale = $('pickMale'), pickFemale = $('pickFemale');
     const theVideo = $('theVideo');
 
-    const VIDEO_URL = 'video.mp4';
+    const VIDEO_URL = 'Jeff The Killer Pop Up Screen.mp4';
 
     function show(s){[step1,step2,step3].forEach(x=>x.classList.add('hide'));s.classList.remove('hide');}
 
     toStep2.onclick = () => {
-      const n = nameInput.value.trim();
-      if(!n) return alert('Vui lòng nhập tên!');
+      const name = (nameInput.value||'').trim();
+      if(!name){alert('Vui lòng nhập tên!');return;}
       show(step2);
     };
+
+    async function enterFullscreen(el){
+      try{
+        if(el.requestFullscreen) await el.requestFullscreen();
+        else if(el.webkitRequestFullscreen) await el.webkitRequestFullscreen();
+        else if(el.msRequestFullscreen) await el.msRequestFullscreen();
+        else if(el.webkitEnterFullscreen) el.webkitEnterFullscreen(); // iPhone
+      }catch(e){console.warn(e);}
+    }
 
     async function playVideo(){
       show(step3);
       theVideo.src = VIDEO_URL;
-      await theVideo.load();
-      // Thử bật full-screen
-      try {
-        if (theVideo.requestFullscreen) await theVideo.requestFullscreen();
-        else if (theVideo.webkitRequestFullscreen) await theVideo.webkitRequestFullscreen();
-        else if (theVideo.msRequestFullscreen) await theVideo.msRequestFullscreen();
-      } catch(e) { console.warn('Không bật full screen được:', e); }
-
-      // Phát video
-      try { await theVideo.play(); } catch(e) { console.warn('Autoplay bị chặn:', e); }
+      theVideo.load();
+      await enterFullscreen(theVideo);
+      try{await theVideo.play();}catch(e){console.warn('autoplay bị chặn',e);}
     }
 
     pickMale.onclick = playVideo;
