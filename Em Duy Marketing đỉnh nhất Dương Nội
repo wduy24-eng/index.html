@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Em Duy marketing đỉnh nhất Dương Nội</title>
+  <meta name="description" content="Jumpscare site: nhập tên → chọn giới tính → video bật toàn màn hình có tiếng." />
+  <style>
+    :root {
+      --bg:#0b0f15; --card:#121826; --text:#e5e7eb; --muted:#94a3b8; --accent:#60a5fa; --danger:#ef4444;
+    }
+    * { box-sizing: border-box; }
+    html, body { height: 100%; }
+    body {
+      margin: 0; background: radial-gradient(1200px 800px at 50% -10%, #1f2937 0%, var(--bg) 50%);
+      color: var(--text); font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji";
+      overflow: hidden;
+    }
+    .center {
+      position: fixed; inset: 0; display: grid; place-items: center; padding: 24px;
+    }
+    .card {
+      width: min(680px, 92vw); background: linear-gradient(180deg, #0f172a 0%, #0b1220 100%);
+      border: 1px solid rgba(255,255,255,0.08); border-radius: 20px; box-shadow: 0 10px 40px rgba(0,0,0,0.6);
+      padding: 28px; text-align: center; backdrop-filter: blur(4px);
+      transition: transform .25s ease, opacity .25s ease;
+    }
+    h1 { margin: 0 0 8px; font-size: clamp(22px, 3.4vw, 36px); letter-spacing: 0.2px; }
+    p.lead { margin: 0 0 20px; color: var(--muted); }
+    .row { display: flex; gap: 12px; justify-content: center; align-items: center; flex-wrap: wrap; }
+    input[type="text"] {
+      width: min(420px, 90vw); padding: 14px 16px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.12);
+      background: #0e1626; color: var(--text); outline: none; font-size: 16px;
+    }
+    button {
+      cursor: pointer; border: 0; border-radius: 12px; padding: 12px 18px; font-weight: 600; font-size: 15px;
+      background: var(--accent); color: #0b1220; transition: transform .08s ease, filter .2s ease; 
+    }
+    button:hover { filter: brightness(1.05); }
+    button:active { transform: translateY(1px) scale(0.99); }
+    .btn-ghost { background: transparent; color: var(--text); border: 1px solid rgba(255,255,255,0.18); }
+
+    .hidden { display: none !important; }
+
+    /* Overlay for jumpscare moment */
+    #overlay {
+      position: fixed; inset: 0; background: black; display: none; z-index: 9998;
+    }
+
+    /* Video full-bleed */
+    #scareVideo {
+      position: fixed; inset: 0; width: 100vw; height: 100vh; object-fit: cover;
+      display: none; z-index: 9999; background: black;
+    }
+
+    /* Tiny flicker animation for subtle tension before click */
+    @keyframes glow { 0%{ box-shadow: 0 0 0 rgba(96,165,250,0.0);} 100%{ box-shadow: 0 10px 30px rgba(96,165,250,0.2);} }
+    .card { animation: glow 1.2s ease-out forwards; }
+
+    footer { position: fixed; bottom: 8px; left: 0; right: 0; text-align: center; font-size: 12px; color: #9ca3af; opacity: .6; }
+  </style>
+</head>
+<body>
+  <div class="center">
+    <div id="step1" class="card" role="dialog" aria-labelledby="title">
+      <h1 id="title">Chúc các con vợ 20/11 xinh đẹp tuyệt với</h1>
+      <p class="lead">Nhập <strong>Họ và tên</strong> rồi bấm "Tiếp tục"</p>
+      <form id="nameForm" class="row" autocomplete="off">
+        <input id="fullName" name="fullName" type="text" placeholder="VD: Nguyễn Văn A" required />
+        <button type="submit">Tiếp tục</button>
+      </form>
+    </div>
+
+    <div id="step2" class="card hidden" role="dialog" aria-live="polite">
+      <h1>Chọn giới tính</h1>
+      <div class="row" style="margin-top:12px">
+        <button class="gender" data-gender="Nam">Nam</button>
+        <button class="gender" data-gender="Nữ">Nữ</button>
+        <button class="btn-ghost" id="back">Quay lại</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="overlay"></div>
+  <!-- IMPORTANT: Put the MP4 file in the same folder as index.html with this exact name -->
+  <video id="scareVideo" preload="auto" playsinline>
+    <source src="Jeff The Killer Pop Up Screen.mp4" type="video/mp4" />
+  </video>
+
+  <footer>© Em Duy marketing đỉnh nhất Dương Nội</footer>
+
+  <script>
+    // Basic helpers
+    const step1 = document.getElementById('step1');
+    const step2 = document.getElementById('step2');
+    const nameForm = document.getElementById('nameForm');
+    const fullName = document.getElementById('fullName');
+    const overlay = document.getElementById('overlay');
+    const video = document.getElementById('scareVideo');
+    const backBtn = document.getElementById('back');
+
+    // Prevent right-click (optional)
+    document.addEventListener('contextmenu', e => e.preventDefault());
+
+    // Step 1 → Step 2
+    nameForm.addEventListener('submit', (e) => {
+      e.preventDefault();
+      if (!fullName.value.trim()) { fullName.focus(); return; }
+      step1.classList.add('hidden');
+      step2.classList.remove('hidden');
+    });
+
+    backBtn.addEventListener('click', () => {
+      step2.classList.add('hidden');
+      step1.classList.remove('hidden');
+      fullName.focus();
+    });
+
+    // Core: trigger jumpscare after picking gender
+    document.querySelectorAll('.gender').forEach(btn => {
+      btn.addEventListener('click', async () => {
+        try {
+          // Hide UI, show black overlay for a split second to amplify surprise
+          step2.style.opacity = '0';
+          overlay.style.display = 'block';
+
+          // Ensure video is ready
+          video.currentTime = 0;
+          video.volume = 1.0; // full volume
+          video.muted = false; // we want sound
+
+          // Show the video element *just* before playback
+          setTimeout(async () => {
+            video.style.display = 'block';
+
+            // Request fullscreen (cross-browser)
+            const el = video;
+            const requestFS = el.requestFullscreen || el.webkitRequestFullscreen || el.msRequestFullscreen || el.mozRequestFullScreen;
+            if (requestFS) {
+              try { await requestFS.call(el); } catch (err) { /* ignore */ }
+            } else if (el.webkitEnterFullscreen) {
+              // iOS Safari inline fallback
+              try { el.webkitEnterFullscreen(); } catch (err) { /* ignore */ }
+            }
+
+            // Play with user gesture (this click) → should allow audio autoplay
+            const playPromise = el.play();
+            if (playPromise && typeof playPromise.then === 'function') {
+              playPromise.catch(err => {
+                // If the browser still blocks, provide a one-tap resume overlay
+                showTapToPlay();
+              });
+            }
+          }, 120); // tiny gap for extra "bất ngờ"
+        } catch (e) {
+          console.error(e);
+        }
+      });
+    });
+
+    function showTapToPlay(){
+      // Minimal fallback if autoplay with sound is blocked for some reason
+      const tap = document.createElement('button');
+      tap.textContent = 'Bấm để bật video';
+      tap.style.cssText = 'position:fixed;inset:auto 0 30px 0;margin:auto;display:block;width:220px;padding:14px 18px;background:#ffffff;color:#0b1220;border-radius:12px;font-weight:700;z-index:10000;border:0;';
+      document.body.appendChild(tap);
+      tap.addEventListener('click', async () => {
+        video.style.display = 'block';
+        try {
+          const el = video;
+          const requestFS = el.requestFullscreen || el.webkitRequestFullscreen || el.msRequestFullscreen || el.mozRequestFullScreen;
+          if (requestFS) { try { await requestFS.call(el); } catch (err) {} }
+          await el.play();
+          tap.remove();
+        } catch(err){ console.error(err); }
+      });
+    }
+
+    // Restore UI after video ends (optional)
+    video.addEventListener('ended', async () => {
+      try {
+        const exitFS = document.exitFullscreen || document.webkitExitFullscreen || document.msExitFullscreen || document.mozCancelFullScreen;
+        if (exitFS && (document.fullscreenElement || document.webkitFullscreenElement)) {
+          await exitFS.call(document);
+        }
+      } catch (e) {}
+      video.style.display = 'none';
+      overlay.style.display = 'none';
+      step2.style.opacity = '1';
+    });
+
+    // Safety: if fullscreen changes (esc pressed), keep video visible
+    document.addEventListener('fullscreenchange', () => {
+      if (!document.fullscreenElement && !document.webkitFullscreenElement) {
+        // User escaped fullscreen; keep the scare going in-window
+        if (!video.paused) video.style.display = 'block';
+      }
+    });
+  </script>
+</body>
+</html>
